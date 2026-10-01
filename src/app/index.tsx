@@ -1,6 +1,17 @@
-import React from 'react';
-import { Image, ScrollView, StyleSheet, Text, View, TextInput,TouchableOpacity } from 'react-native';
+import React, { useEffect } from 'react';
+import { Image, 
+  ScrollView,
+   StyleSheet, 
+   Text, 
+   View,
+  TextInput,
+  TouchableOpacity,
+  Alert,
+  Keyboard } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import asyncStorage from '@react-native-async-storage/async-storage';
+
+const STORAGE_KEY = '@corporate_space_area';
 
 const EQUIPAMIENTO = [
   'Pantalla 4K de 85"',
@@ -13,7 +24,38 @@ const EQUIPAMIENTO = [
 export default function App() {
   const [areaGuardada, setAreaGuardada] = React.useState('');
   const [areaInput, setAreaInput] = React.useState('');
+  const [disponible, setDisponible] = React.useState(true);
 
+  useEffect(() => {
+  const cargarArea = async () => {
+    try {
+      const valor = await asyncStorage.getItem(STORAGE_KEY);
+      if (valor !== null) {
+        setAreaGuardada(valor);
+        setAreaInput(valor);
+      }
+    } catch (e) {
+      console.error('Error al leer el área', e);
+    }
+  };
+  cargarArea();
+}, []);
+
+const cargarArea = async () => {
+  const nombre = areaInput.trim();
+  if (!nombre) {
+    Alert.alert('Campo vacío', 'Escribe el nombre del departamento o área.');
+    return;
+  }
+  try {
+    await asyncStorage.setItem(STORAGE_KEY, nombre);
+    setAreaGuardada(nombre);
+    Keyboard.dismiss();
+    Alert.alert('Guardado', 'El área quedó asignada correctamente.');
+  } catch (e) {
+    Alert.alert('Error', 'No se pudo guardar el área.');
+  }
+};
   const guardarArea = () => {
     setAreaGuardada(areaInput.trim());
   }
